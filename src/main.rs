@@ -1,3 +1,4 @@
 fn main() {
-    println!("Hello, world!");
+    println!("Welcome to Blade, the best Rusty Sword Arena Client, ever.");
 }
+
