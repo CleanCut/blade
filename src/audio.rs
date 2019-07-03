@@ -12,6 +12,9 @@ pub fn audio_loop(rx: Receiver<&str>) {
 
     loop {
         let clip = rx.recv().unwrap();
+        if clip == "stop" {
+            break;
+        }
         audio.play(clip);
     }
 }

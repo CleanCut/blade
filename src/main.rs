@@ -1,4 +1,5 @@
 use blade::audio;
+use rusty_sword_arena::{game::GameEvent, gfx::Window};
 use std::sync::mpsc;
 use std::thread;
 
@@ -14,5 +15,15 @@ fn main() {
     });
     tx.send("startup").unwrap();
 
+    let mut window = Window::new(None, "Blade of Rustiness");
+    'gameloop: loop {
+        for event in window.poll_game_events() {
+            if let GameEvent::Quit = event {
+                break 'gameloop;
+            }
+        }
+    }
+
+    tx.send("stop").unwrap();
     handle.join().unwrap();
 }
