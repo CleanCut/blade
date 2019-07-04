@@ -1,13 +1,17 @@
 use blade::audio;
 use rusty_sword_arena::{game::GameEvent, gfx::Window};
-use std::sync::mpsc;
-use std::thread;
+use std::{env, process, sync::mpsc, thread};
 
 fn main() {
     // Welcome & argument parsing
     println!("Welcome to Blade, the best Rusty Sword Arena Client, ever.");
-    let name = "Zork";
-    let host = "localhost";
+    let mut args: Vec<String> = env::args().skip(1).collect();
+    if args.len() != 2 {
+        println!("Usage: (prog) name host");
+        process::exit(2);
+    }
+    let host = args.pop().unwrap();
+    let name = args.pop().unwrap();
     println!("Connecting {} to server {}", name, host);
 
     // Network System
