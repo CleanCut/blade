@@ -1,5 +1,5 @@
 use blade::audio;
-use rusty_sword_arena::{game::GameEvent, gfx::Window};
+use rusty_sword_arena::{game::GameEvent, gfx::Window, net::ConnectionToServer, VERSION};
 use std::{env, process, sync::mpsc, thread};
 
 fn main() {
@@ -15,6 +15,14 @@ fn main() {
     println!("Connecting {} to server {}", name, host);
 
     // Network System
+    let mut connection = ConnectionToServer::new(&host);
+    let settings = connection.get_game_settings();
+    println!(
+        "Client v{} connected to server v{} at {}",
+        VERSION, settings.version, host
+    );
+    let my_id = connection.join(&name).unwrap();
+    println!("My player id is {}", my_id);
 
     // Audio System (separate thread)
     let (tx, rx) = mpsc::channel();
