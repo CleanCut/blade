@@ -44,8 +44,13 @@ fn main() {
     // Game
     'gameloop: loop {
         for event in window.poll_game_events() {
-            if let GameEvent::Quit = event {
-                break 'gameloop;
+            match event {
+                GameEvent::Quit => break 'gameloop,
+                GameEvent::MouseMoved { position } => println!("{:?}", position),
+                GameEvent::Button {
+                    button_state,
+                    button_value,
+                } => println!("{:?} {:?}", button_state, button_value),
             }
         }
     }
