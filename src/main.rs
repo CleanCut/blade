@@ -21,7 +21,13 @@ fn main() {
         "Client v{} connected to server v{} at {}",
         VERSION, settings.version, host
     );
-    let my_id = connection.join(&name).unwrap();
+    let my_id = match connection.join(&name) {
+        Ok(id) => id,
+        Err(message) => {
+            println!("{}", message);
+            process::exit(3);
+        }
+    };
     println!("My player id is {}", my_id);
 
     // Audio System (separate thread)
@@ -29,7 +35,8 @@ fn main() {
     let handle = thread::spawn(move || {
         audio::audio_loop(rx);
     });
-    tx.send("startup").unwrap();
+    tx.send("startup")
+        .expect("Audio thread seems to have crashed");
 
     // Everything else we need
     let mut window = Window::new(None, "Blade of Rustiness");
