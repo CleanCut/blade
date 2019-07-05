@@ -1,5 +1,5 @@
 use rusty_sword_arena::{
-    game::PlayerState,
+    game::{PlayerEvent, PlayerState},
     gfx::{Img, Window},
 };
 use std::sync::mpsc::Sender;
@@ -30,6 +30,17 @@ impl Player {
         let ps = &mut self.player_state;
         self.player_img.pos = ps.pos;
         self.player_img.direction = ps.direction;
+        for player_event in ps.player_events.drain(..) {
+            // Play sounds
+            match player_event {
+                PlayerEvent::AttackMiss => self.audio_tx.send("miss").unwrap(),
+                PlayerEvent::Die => self.audio_tx.send("die").unwrap(),
+                PlayerEvent::Join => self.audio_tx.send("join").unwrap(),
+                PlayerEvent::Spawn => self.audio_tx.send("spawn").unwrap(),
+                PlayerEvent::TookDamage => self.audio_tx.send("ow").unwrap(),
+                _ => {}
+            }
+        }
     }
     pub fn draw(&self, window: &mut Window) {
         if self.player_state.dead {
