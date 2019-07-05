@@ -1,6 +1,12 @@
-use blade::audio;
-use rusty_sword_arena::{game::GameEvent, gfx::Window, net::ConnectionToServer, VERSION};
-use std::{env, process, sync::mpsc, thread};
+use blade::{audio, player::Player};
+use rusty_sword_arena::game::ButtonProcessor;
+use rusty_sword_arena::{
+    game::{GameEvent, PlayerInput, Vector2},
+    gfx::Window,
+    net::ConnectionToServer,
+    VERSION,
+};
+use std::{collections::HashMap, env, process, sync::mpsc, thread};
 
 fn main() {
     // Welcome & argument parsing
@@ -40,19 +46,53 @@ fn main() {
 
     // Everything else we need
     let mut window = Window::new(None, "Blade of Rustiness");
+    let mut players: HashMap<u8, Player> = HashMap::new();
+    let mut mouse_pos = Vector2::new();
+    let mut player_input = PlayerInput::with_id(my_id);
+    let mut button_processor = ButtonProcessor::new();
 
     // Game
     'gameloop: loop {
+        // Accumulate & send player input
         for event in window.poll_game_events() {
             match event {
                 GameEvent::Quit => break 'gameloop,
-                GameEvent::MouseMoved { position } => println!("{:?}", position),
+                GameEvent::MouseMoved { position } => mouse_pos = position,
                 GameEvent::Button {
                     button_state,
                     button_value,
-                } => println!("{:?} {:?}", button_state, button_value),
+                } => button_processor.process(button_state, button_value, &mut player_input),
             }
         }
+        if let Some(my_player) = players.get(&my_id) {
+            // If I know my position, I can set my direction to point towards the mouse
+            player_input.direction = my_player.player_state.pos.angle_between(mouse_pos);
+        }
+        connection.send_player_input(&player_input);
+
+        // Process any new game states
+        for game_state in connection.poll_game_states() {
+            // Remove players who no longer have a game state
+            players.retain(|k, _| game_state.player_states.contains_key(k));
+            // Create new players and update existing players
+            for (id, player_state) in game_state.player_states {
+                players
+                    .entry(id)
+                    .or_insert_with(|| Player::new(&window, tx.clone(), player_state.clone()))
+                    .update_state(player_state);
+            }
+        }
+
+        // Update player timers
+
+        // Draw a frame
+        window.drawstart();
+        for (_, player) in &players {
+            player.draw(&mut window);
+        }
+        window.drawfinish();
+
+        // Do timekeeping
     }
 
     // Cleanup
