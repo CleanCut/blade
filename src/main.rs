@@ -87,7 +87,13 @@ fn main() {
 
         // Draw a frame
         window.drawstart();
-        for (_, player) in &players {
+        for (id, player) in &players {
+            if *id == my_id {
+                continue
+            }
+            player.draw(&mut window);
+        }
+        if let Some(player) = players.get(&my_id) {
             player.draw(&mut window);
         }
         window.drawfinish();
