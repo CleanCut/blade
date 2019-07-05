@@ -6,7 +6,13 @@ use rusty_sword_arena::{
     net::ConnectionToServer,
     VERSION,
 };
-use std::{collections::HashMap, env, process, sync::mpsc, thread};
+use std::{
+    collections::HashMap,
+    env, process,
+    sync::mpsc,
+    thread,
+    time::{Duration, Instant},
+};
 
 fn main() {
     // Welcome & argument parsing
@@ -50,6 +56,8 @@ fn main() {
     let mut mouse_pos = Vector2::new();
     let mut player_input = PlayerInput::with_id(my_id);
     let mut button_processor = ButtonProcessor::new();
+    let mut instant = Instant::now();
+    let mut dt = Duration::from_secs(0);
 
     // Game
     'gameloop: loop {
@@ -84,6 +92,9 @@ fn main() {
         }
 
         // Update player timers
+        for player in players.values_mut() {
+            player.update_timer(dt);
+        }
 
         // Draw a frame
         window.drawstart();
@@ -99,6 +110,8 @@ fn main() {
         window.drawfinish();
 
         // Do timekeeping
+        dt = instant.elapsed();
+        instant = Instant::now();
     }
 
     // Cleanup
